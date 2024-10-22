@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Chattanooga Area Water Trails</title>
+        <meta charset='utf-8' />
+        <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+        <script src="https://unpkg.com/maplibre-gl@^4.7.1/dist/maplibre-gl.js"></script>
+        <link href="https://unpkg.com/maplibre-gl@^4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+
+        <!-- font -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+
+        <!-- csv parsing -->
+        <script src="https://unpkg.com/papaparse"></script>
+
+        <style>
+            * {
+                font-family: "Inter", sans-serif;
+                font-optical-sizing: auto;
+                font-style: normal;
+            }
+
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            #app {
+                bottom: 0;
+                left: 0;
+                right: 0;
+                position: absolute;
+                top: 0;
+            }
+            #map {
+                bottom: 0;
+                left: 0;
+                right: 0;
+                position: absolute;
+                top: 0;                
+            }
+            .marker {
+                border: 2px solid #004360;
+                /* background: #00A3BD; */
+                border-radius: 26px;
+                height: 26px;
+                text-align: center;
+                width: 26px;
+            }
+            .marker-inner {
+                background: #00A3BD;
+                border-radius: 20px;
+                height: 26px;
+                left: 50%;
+                position: absolute;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                width: 26px;
+            }                        
+        </style>
+        <script>
+            function get_export_url(url) {
+                const obj = new URL(url);
+                const pathname = obj.pathname.replace("/edit", "").replace("/view", "").replace("/export", "") + "/export";
+                obj.searchParams.set("format", "csv");
+                const export_url = obj.origin + pathname + "?" + obj.searchParams.toString() + obj.hash;
+                return export_url;
+            }
+        </script>
+    </head>
+    <body>
+        <div id="app">
+            <div id="map"></div>
+        </div>        
+        <script>
+            var mapOptions = {
+                container: 'map', // container id
+                // Define the map syle (OpenStreetMap raster tiles)
+                style: "https://api.maptiler.com/maps/streets-v2-light/style.json?key=mYniYTe7rfEM5jAFdfKy",
+                center: [-85.310947, 35.055666], // starting position [lng, lat]
+                zoom: 11 // starting zoom
+            };
+
+            // zoom out more if on mobile
+            if (window.innerWidth < 800) {
+                mapOptions.zoom = 9;
+                mapOptions.attributionControl = false;
+            }
+            
+            var map = new maplibregl.Map(mapOptions);
+
+            if (window.innerWidth < 800) {
+                map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
+            }
+
+            var searchParams = new URLSearchParams(window.location.search);
+            var url = searchParams.get("url");
+            var export_url = get_export_url(url);
+
+            (async function () {
+                const res = await fetch(export_url);
+                const text = await res.text();
+                const parsed = Papa.parse(text, { header: true });
+
+                console.log("parsed:", parsed);
+                parsed.data.forEach(it => {
+                    const lat = it['Latitude'];
+                    const lon = it['Longitude'];
+                    const point = [lon, lat];
+
+                    const el = document.createElement('div');
+                        el.className = "marker";
+                        el.innerHTML = '<div class="marker-inner"></div>';
+
+                    const description = `${it.Name}\n${it.Details}`;
+                    const popup = new maplibregl.Popup({offset: 25}).setText(description.trim());
+                    const marker = new maplibregl.Marker( { element: el })
+                        .setLngLat(point)
+                        .setPopup(popup)
+                        .addTo(map);
+                });
+            })();
+        </script>
+    </body>
+</html>
