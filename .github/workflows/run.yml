@@ -1,34 +1,34 @@
-name: build-main
-run-name: build-main
-on:
-  push:
-    branches:
-      - main
-  schedule:
-    # every day at midnight
-    - cron: 0 0 * * *
+# name: build-main
+# run-name: build-main
+# on:
+#   push:
+#     branches:
+#       - main
+#   schedule:
+#     # every day at midnight
+#     - cron: 0 0 * * *
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/osgeo/gdal
-    permissions:
-      contents: write
-    name: main
-    steps:
-      - run: apt-get update
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+#     container:
+#       image: ghcr.io/osgeo/gdal
+#     permissions:
+#       contents: write
+#     name: main
+#     steps:
+#       - run: apt-get update
 
-      - run: apt-get install -y git
+#       - run: apt-get install -y git
 
-      - uses: actions/checkout@v3
+#       - uses: actions/checkout@v3
 
-      - run: sh ./run.sh
+#       - run: sh ./run.sh
 
-      - run: ls
+#       - run: ls
 
-      # prevents fatal: detected dubious ownership in repository at '/__w/chattanooga-area-water-trails/chattanooga-area-water-trails'
-      - run: git config --global --add safe.directory /__w/chattanooga-area-water-trails/chattanooga-area-water-trails
+#       # prevents fatal: detected dubious ownership in repository at '/__w/chattanooga-area-water-trails/chattanooga-area-water-trails'
+#       - run: git config --global --add safe.directory /__w/chattanooga-area-water-trails/chattanooga-area-water-trails
 
-      # Commit all changed files back to the repository
-      - uses: stefanzweifel/git-auto-commit-action@v5
+#       # Commit all changed files back to the repository
+#       - uses: stefanzweifel/git-auto-commit-action@v5
